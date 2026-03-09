@@ -1,5 +1,6 @@
 import requests
 from fastapi import FastAPI
+from openaq_API_KEY import OPENAQ_API_KEY
 
 app = FastAPI()
 
@@ -9,7 +10,7 @@ def get_air_quality():
     url = "https://api.openaq.org/v3/locations/8118"
     
     headers = {
-        "X-API-Key": "354c9c799cd187a6eb4d889504b9cc382c6b8f64f215c474d4e3a7af7cc7572c"
+        "X-API-Key": OPENAQ_API_KEY
     }
     
     response = requests.get(url, headers=headers)
