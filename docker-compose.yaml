@@ -9,10 +9,23 @@ services:
     ports:
       - "5432:5432"
 
-    app:
-      build: .
+  openaq-service:
+      build: ./OpenAQ-fetcher
+      env_file: .env
       depends_on:
         - db
-      env_file:
-        - .env
-      restart: always
+
+  opensky-service:
+      build: ./OpenSky-fetcher
+      env_file: .env
+      depends_on:
+        - db
+
+  dashboard:
+       build: .
+       commands:
+       ports:
+         - 
+       env_file: .env
+       depends_on:
+         - db
