@@ -24,6 +24,7 @@ mdurl==0.1.2
 numpy==2.0.2
 opensky-api @ git+https://github.com/openskynetwork/opensky-api.git@56e6cd6d69f4ce3800051a2ea8c728373171871b#subdirectory=python
 pandas==2.3.3
+psycopg2-binary==2.9.7
 pydantic==2.12.5
 pydantic-core==2.41.5
 pydantic-extra-types==2.11.0
