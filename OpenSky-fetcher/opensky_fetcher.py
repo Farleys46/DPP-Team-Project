@@ -1,24 +1,40 @@
 from fastapi import FastAPI
-import requests
 from opensky_api import OpenSkyApi
-import time
 
 api = OpenSkyApi()
 
-# 3. 
-s = api.get_states(time_secs=0, bbox=(58.8, 59.9, 17.0, 19.0))
+app = FastAPI()
 
-if s is not None and s.states is not None:
+@app.get("/live-flights")
+def get_live_flights():
     
-    # 3. Loopa igenom s.states (inte bara s)
+    bbox_arlanda_stockholm = (59.2, 59.8, 17.5, 18.5)
+    
+    # Hämta flygdata i en box samma som OpenAQ-API.
+    s = api.get_states(bbox=(bbox_arlanda_stockholm))
+    
+    
+    if s is None or s.states is None:
+        return {
+            "status": "error",
+            "message": "Inga flyg hittades, eller har 10sek Rate Limit inträffat."
+        }
+    
+    flight_data = []
+    
     for flight in s.states:
-        
-        # 4. Använd variabler som faktiskt finns i StateVector (t.ex. origin_country istället för estDepartureAirport)
-        callsign = flight.callsign.strip() if flight.callsign else "Okänd"
-        country = flight.origin_country
-        altitude = flight.baro_altitude
-        
-        print(f"Flight: {callsign}, Registrerad i: {country}, Höjd: {altitude} meter")
-        
-else:
-    print("Inga flyg hittades i boxen just nu, eller så slog vi i 10-sekundersspärren (Rate Limit).")
+        flight_data.append({
+            "callsign": flight.callsign.strip() if flight.callsign else "Unknown",
+            "country": flight.origin_country,
+            "longitude": flight.longitude,
+            "latitude": flight.latitude,
+            "altitude_meters": flight.baro_altitude,
+            "velocity_m_s": flight.velocity,
+            "flight_on_ground": flight.on_ground
+        })
+    
+    return {
+        "status": "success",
+        "total_flights": len(flight_data),
+        "data": flight_data
+    }
