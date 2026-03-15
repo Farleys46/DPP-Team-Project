@@ -1,12 +1,16 @@
-from fastapi import FastAPI
+import os
+import psycopg2
+from dotenv import load_dotenv
 from opensky_api import OpenSkyApi
 
-api = OpenSkyApi()
+# Hämta API-nyckel och databas inloggning från .env-filen.
+load_dotenv()
 
-app = FastAPI()
 
-@app.get("/live-flights")
-def get_live_flights():
+def get_and_store_flights():
+    print("Hämtar flygdata från OpenSky API...")
+    
+    api = OpenSkyApi()
     
     bbox_arlanda_stockholm = (59.2, 59.8, 17.5, 18.5)
     
@@ -15,10 +19,7 @@ def get_live_flights():
     
     
     if s is None or s.states is None:
-        return {
-            "status": "error",
-            "message": "Inga flyg hittades, eller har 10sek Rate Limit inträffat."
-        }
+        print("status": "os.error", "message": "Inga flyg hittades, eller har 10sek Rate Limit inträffat.")
     
     flight_data = []
     
