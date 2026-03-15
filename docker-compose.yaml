@@ -28,7 +28,7 @@ services:
   dashboard:
     build: 
       context: .
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
     ports:
       - "8501:8501"
     env_file: .env
