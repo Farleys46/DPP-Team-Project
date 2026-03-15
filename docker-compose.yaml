@@ -10,22 +10,27 @@ services:
       - "5432:5432"
 
   openaq-service:
-      build: ./OpenAQ-fetcher
-      env_file: .env
-      depends_on:
-        - db
+    build: 
+      context: .
+      dockerfile: OpenAQ-fetcher/dockerfile
+    env_file: .env
+    depends_on:
+      - db
 
   opensky-service:
-      build: ./OpenSky-fetcher
-      env_file: .env
-      depends_on:
-        - db
+    build: 
+      context: .
+      dockerfile: OpenSky-fetcher/dockerfile
+    env_file: .env
+    depends_on:
+      - db
 
   dashboard:
-       build: .
-       command: streamlit run main.py --server.port 8501 --server.address=0.0.0.0
-       ports:
-         - "8501:8501"
-       env_file: .env
-       depends_on:
-         - db
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8501:8501"
+    env_file: .env
+    depends_on:
+      - db
