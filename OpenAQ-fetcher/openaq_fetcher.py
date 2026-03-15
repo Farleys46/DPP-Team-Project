@@ -1,17 +1,19 @@
 import requests
 from fastapi import FastAPI
 from datetime import datetime, timezone, timedelta
-from openaq_API_KEY import OPENAQ_API_KEY
+from dotenv import load_dotenv
+import os
+import psycopg2
 
-app = FastAPI()
+load_dotenv()
 
-@app.get("/air-quality")
-def get_air_quality():
+def get_and_store_air_quality():
+    print("Hämtar luftkvalitetsdata från OpenAQ API...")
     
     url = "https://api.openaq.org/v3/locations"
     
     headers = {
-        "X-API-Key": OPENAQ_API_KEY
+        "X-API-Key": os.getenv("OPENAQ_API_KEY")
     }
     
     params = {
@@ -23,7 +25,8 @@ def get_air_quality():
     response = requests.get(url, headers=headers, params=params)   
     
     if response.status_code != 200:
-        return {"error": "Kunde inte hämta luftdata", "status_code": response.status_code}
+        print(f"Fel vid hämtning: {response.status_code}")
+        return
     
     locations_data = response.json().get("results", [])
     
@@ -85,8 +88,21 @@ def get_air_quality():
             "measurements": measurements
         })
         
-    return {
-        "status": "success",
-        "active_stations_found": len(dashboard_data),
-        "data": dashboard_data
-    }
+    if not dashboard_data:
+        print("Ingen data att spara.")
+        return
+    
+    try:
+        # Connect to PostgreSQL database and load data.
+        conn = psycopg2.connect(
+            dbname=os.getenv("POSTGRES_DB"),
+            user=os.getenv("POSTGRES_USER"),
+            password=os.getenv("POSTGRES_PASSWORD"),
+            host=os.getenv("DB_HOST"),
+            port=os.getenv("DB_PORT")
+        )
+        cursor = conn.cursor()
+        
+        for station in dashboard_data:
+            for measurement in station["measurements"]:
+                """INSERT INTO 
