@@ -19,8 +19,12 @@ def get_and_store_flights():
     
     
     if s is None or s.states is None:
-        print("status": "os.error", "message": "Inga flyg hittades, eller har 10sek Rate Limit inträffat.")
+        print({ 
+            "status": "error",
+            "message": "Inga flyg hittades, eller har 10sek Rate Limit inträffat."})
+        return
     
+    # Transformera datan. 
     flight_data = []
     
     for flight in s.states:
@@ -34,8 +38,17 @@ def get_and_store_flights():
             "flight_on_ground": flight.on_ground
         })
     
-    return {
-        "status": "success",
-        "total_flights": len(flight_data),
-        "data": flight_data
-    }
+    
+    try:
+        conn = psycopg2.connect(
+            dbname=os.getenv("POSTGRES_DB"),
+            user=os.getenv("POSTGRES_USER"),
+            password=os.getenv("POSTGRES_PASSWORD"),
+            host=os.getenv("DB_HOST"),
+            port=os.getenv("DB_PORT")
+        )
+        cursor = conn.cursor()
+        
+        for flight in flight_data:
+            insert_query = """
+            INSERT INTO 
