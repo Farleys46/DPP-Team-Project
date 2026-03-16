@@ -51,4 +51,8 @@ def get_and_store_flights():
         
         for flight in flight_data:
             insert_query = """
-            INSERT INTO 
+            INSERT INTO
+
+
+
+# I need to know what the table name is and the column names for the database to complete this query.
