@@ -80,3 +80,16 @@ def get_and_store_flights():
             
         conn.commit()
         print(f"Sparade {len(flight_data)} flygplan framgångsrikt i PostgreSQL!")
+        
+    except Exception as e:
+        print(f"Ett fel uppstod med databasen: {e}")
+        
+    
+    finally:
+        # Stäng anslutningen för att inte låsa databasen
+        if 'cursor' in locals(): cursor.close()
+        if 'conn' in locals(): conn.close()
+
+# Startar scriptet
+if __name__ == "__main__":
+    get_and_store_flights()

@@ -141,7 +141,7 @@ def get_and_store_air_quality():
         print(f"Ett fel uppstod med databasen: {e}")
         
     finally:
-        # Viktigt! Stäng anslutningen
+        # Stäng anslutningen
         if 'cursor' in locals(): cursor.close()
         if 'conn' in locals(): conn.close()
 
