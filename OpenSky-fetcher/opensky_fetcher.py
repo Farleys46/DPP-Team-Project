@@ -49,10 +49,34 @@ def get_and_store_flights():
         )
         cursor = conn.cursor()
         
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS live_flights (
+                id SERIAL PRIMARY KEY,
+                callsign VARCHAR(50),
+                country VARCHAR(100),
+                longitude FLOAT,
+                latitude FLOAT,
+                altitude_meters FLOAT,
+                velocity_m_s FLOAT,
+                flight_on_ground BOOLEAN,
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        """)
+        conn.commit() # Spara tabelln skapandet
+        
         for flight in flight_data:
             insert_query = """
-            INSERT INTO
-
-
-
-# I need to know what the table name is and the column names for the database to complete this query.
+                INSERT INTO live_flights 
+                (callsign, country, longitude, latitude, altitude_meters, velocity_m_s, flight_on_ground)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """
+            
+            data_to_insert = (
+                flight["callsign"], flight["country"], flight["longitude"], 
+                flight["latitude"], flight["altitude_meters"], 
+                flight["velocity_m_s"], flight["flight_on_ground"]
+            )
+            cursor.execute(insert_query, data_to_insert)
+            
+        conn.commit()
+        print(f"Sparade {len(flight_data)} flygplan framgångsrikt i PostgreSQL!")
