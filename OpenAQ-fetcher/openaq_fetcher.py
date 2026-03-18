@@ -93,7 +93,6 @@ def get_and_store_air_quality():
         return
     
     try:
-        # Connect to PostgreSQL database and load data.
         conn = psycopg2.connect(
             dbname=os.getenv("POSTGRES_DB"),
             user=os.getenv("POSTGRES_USER"),
@@ -103,6 +102,42 @@ def get_and_store_air_quality():
         )
         cursor = conn.cursor()
         
+        # Skapa tabellerna direkt i databasen om de inte redan finns
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS air_quality (
+                id SERIAL PRIMARY KEY,
+                station_name VARCHAR(150),
+                city VARCHAR(100),
+                latitude FLOAT,
+                longitude FLOAT,
+                parameter VARCHAR(50),
+                value FLOAT,
+                units VARCHAR(20),
+                last_updated TIMESTAMP,
+                db_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        """)
+        conn.commit()
+        
+        # Spara data i databasen
         for station in dashboard_data:
             for measurement in station["measurements"]:
-                """INSERT INTO 
+                
+                insert_query = """
+                    INSERT INTO air_quality (station_name, city, latitude, longitude, parameter, value, units, last_updated)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """
+                data_to_insert = (
+                    station["station_name"], 
+                    station["city"], 
+                    station["latitude"], 
+                    station["longitude"], 
+                    measurement["parameter"], 
+                    measurement["value"], 
+                    measurement["units"],
+                    station["last_updated"]
+                )
+                cursor.execute(insert_query, data_to_insert)
+                
+        conn.commit()
+        print(f"Sparade data för {len(dashboard_data)} stationer i databasen!")
