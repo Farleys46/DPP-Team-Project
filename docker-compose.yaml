@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: air_flight_db
+    ports:
+      - "5432:5432"
+
+  openaq-service:
+    build: 
+      context: .
+      dockerfile: OpenAQ-fetcher/dockerfile
+    env_file: .env
+    depends_on:
+      - db
+
+  opensky-service:
+    build: 
+      context: .
+      dockerfile: OpenSky-fetcher/dockerfile
+    env_file: .env
+    depends_on:
+      - db
+
+  dashboard:
+    build: 
+      context: .
+      dockerfile: dockerfile
+    ports:
+      - "8501:8501"
+    env_file: .env
+    depends_on:
+      - db
