@@ -1,6 +1,7 @@
 import os
 import requests
 import psycopg2
+import time
 from dotenv import load_dotenv
 from datetime import datetime, timezone, timedelta
 
@@ -22,6 +23,7 @@ def get_and_store_air_quality():
     }
     
     response = requests.get(url, headers=headers, params=params)   
+    time.sleep(15)
     
     if response.status_code != 200:
         print(f"Fel vid hämtning: {response.status_code}")
@@ -58,6 +60,7 @@ def get_and_store_air_quality():
         
         url_latest = f"https://api.openaq.org/v3/locations/{station_id}/latest"
         latest_response = requests.get(url_latest, headers=headers)
+        time.sleep(15)
         
         measurements = []
         if latest_response.status_code == 200:
@@ -146,4 +149,7 @@ def get_and_store_air_quality():
         if 'conn' in locals(): conn.close()
 
 if __name__ == "__main__":
-    get_and_store_air_quality()
+    while True:
+        get_and_store_air_quality()
+        print("Klar, väntar 10min innan nästa hämtning av data!")
+        time.sleep(600)

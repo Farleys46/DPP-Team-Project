@@ -1,5 +1,6 @@
 import os
 import psycopg2
+import time
 from dotenv import load_dotenv
 from opensky_api import OpenSkyApi
 
@@ -92,4 +93,7 @@ def get_and_store_flights():
 
 # Startar scriptet
 if __name__ == "__main__":
-    get_and_store_flights()
+    while True:
+        get_and_store_flights()
+        print("Klar, väntar 10min innan nästa hämtning av data!")
+        time.sleep(30)
