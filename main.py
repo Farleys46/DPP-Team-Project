@@ -60,3 +60,4 @@ if not df.empty:
     st.line_chart(df[['flights', 'aqi_pm25']])
 else:
     st.warning("No data available to display. Please wait a few minutes and refresh the page!")
+
