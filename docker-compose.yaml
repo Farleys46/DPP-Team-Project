@@ -11,7 +11,7 @@ services:
 
   openaq-service:
     build: 
-      context: .
+      context: ./OpenAQ-fetcher
       dockerfile: OpenAQ-fetcher/dockerfile
     restart: always # To handle crashes/updates
     env_file: .env
@@ -20,7 +20,7 @@ services:
 
   opensky-service:
     build: 
-      context: .
+      context: ./OpenSky-fetcher
       dockerfile: OpenSky-fetcher/dockerfile
     env_file: .env
     depends_on:
