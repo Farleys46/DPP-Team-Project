@@ -98,7 +98,7 @@ if not df_trend.empty:
             delta_text = "Bra luftkvalitet"
             delta_color = "green"
             
-        st.metric(label="PM10 (luftpartiklar)", value=f"{current_pm10} µg/m³", delta=delta_text, delta_color=delta_color)
+        st.metric(label="PM10 (luftpartiklar)", value=f"{current_pm10} µg/m³", delta=delta_text, delta_color="normal")
         
     with col3:
         st.write("## Flyg över Sthlm/Arlanda (live)##")
