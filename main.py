@@ -39,12 +39,12 @@ def load_data():
 # Query för att joina air_quality och flight_data baserat på tidsintervall
         trend_query = """
             WITH flight_stats AS (
-                SELECT date_trunc("hour", timestamp) AS time_bucket, COUNT(DISTINCT callsign) AS flights
+                SELECT date_trunc('hour', timestamp) AS time_bucket, COUNT(DISTINCT callsign) AS flights
                 FROM live_flights GROUP BY time_bucket
                 ),
             aq_stats AS (
-                SELECT date_trunc("hour", db_timestamp) AS time_bucket, AVG(value) AS pm10
-                FROM air_quality WHERE parameter = "pm10" GROUP BY time_bucket
+                SELECT date_trunc('hour', db_timestamp) AS time_bucket, AVG(value) AS pm10
+                FROM air_quality WHERE parameter = 'pm10' GROUP BY time_bucket
                 )
             SELECT COALESCE(f.time_bucket, a.time_bucket) AS timestamp,
                 COALESCE(f.flights, 0) AS flights,
