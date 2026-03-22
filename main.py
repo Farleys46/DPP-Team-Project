@@ -88,17 +88,17 @@ if not df_trend.empty:
         #Färga texten baserat på PM10-nivån
         if current_pm10 > 50:
             delta_text = "Höga partikelnivåer!"
-            delta_color = "red"
+            color_setting = "inverse"
         
         elif current_pm10 > 35:
             delta_text = "Måttlig luftkvalitet"
-            delta_color = "orange"
+            color_setting = "off"
             
         else:
             delta_text = "Bra luftkvalitet"
-            delta_color = "green"
+            color_setting = "normal"
             
-        st.metric(label="PM10 (luftpartiklar)", value=f"{current_pm10} µg/m³", delta=delta_text, delta_color="normal")
+        st.metric(label="PM10 (luftpartiklar)", value=f"{current_pm10} µg/m³", delta=delta_text, delta_color=color_setting)
         
     with col3:
         st.write("## Flyg över Sthlm/Arlanda (live)##")
