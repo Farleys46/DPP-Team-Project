@@ -44,9 +44,9 @@ if not df.empty:
     # --- WARNING SYSTEM ---
     latest_aqi = df.iloc[0]['aqi']
     
-    if latest_aqi > 15:
+    if latest_aqi > 50:
         st.error(f"Warning: High Particle Levels! ({latest_aqi})")
-    elif latest_aqi > 5:
+    elif latest_aqi > 35:
         st.warning(f"Moderate air quality ({latest_aqi})")
     else:
         st.success(f"Good air quality ({latest_aqi})")
