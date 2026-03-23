@@ -95,5 +95,5 @@ def get_and_store_flights():
 if __name__ == "__main__":
     while True:
         get_and_store_flights()
-        print("Klar, väntar 10min innan nästa hämtning av data!")
-        time.sleep(30)
+        print("Klar, väntar 5min innan nästa hämtning av data!")
+        time.sleep(300)

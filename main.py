@@ -20,8 +20,8 @@ st.markdown("""
             """, unsafe_allow_html=True)
 
 # HEADER
-st.title("Air traffic vs Air Quality in Stockholm")
-st.markdown("Flygtrafik och luftkvalitet över Sthlm/Arlanda")
+st.title("SkySense")
+st.markdown("Flygtrafik och luftkvalitet över Stockholm/Arlanda")
 
 if st.button("Ladda in senaste datan"):
     st.rerun()
@@ -39,12 +39,12 @@ def load_data():
 # Query för att joina air_quality och flight_data baserat på tidsintervall
         trend_query = """
             WITH flight_stats AS (
-                SELECT date_trunc("hour", timestamp) AS time_bucket, COUNT(DISTINCT callsign) AS flights
+                SELECT date_trunc('hour', timestamp) AS time_bucket, COUNT(DISTINCT callsign) AS flights
                 FROM live_flights GROUP BY time_bucket
                 ),
             aq_stats AS (
-                SELECT date_trunc("hour", db_timestamp) AS time_bucket, AVG(value) AS pm10
-                FROM air_quality WHERE parameter = "pm10" GROUP BY time_bucket
+                SELECT date_trunc('hour', db_timestamp) AS time_bucket, AVG(value) AS pm10
+                FROM air_quality WHERE parameter = 'pm10' GROUP BY time_bucket
                 )
             SELECT COALESCE(f.time_bucket, a.time_bucket) AS timestamp,
                 COALESCE(f.flights, 0) AS flights,
@@ -56,22 +56,46 @@ def load_data():
         df_trend = pd.read_sql(trend_query, conn)
         
         df_latest_aq = pd.read_sql("SELECT value FROM air_quality WHERE parameter = 'pm10' ORDER BY db_timestamp DESC LIMIT 1", conn)
-        df_latest_flights = pd.read_sql("SELECT COUNT(DISTINCT callsign) as count FROM live_flights WHERE timestamp >= NOW() - INTERVAL '15 minutes'", conn)
+        
+        df_latest_flights = pd.read_sql("""
+            SELECT COUNT(DISTINCT callsign) as count
+            FROM live_flights
+            WHERE timestamp >= (SELECT MAX(timestamp) FROM live_flights) - INTERVAL '5 minutes'
+            """, conn)
+        
         
         # Hämta koordinater till en kartfunktion
-        df_map = pd.read_sql("SELECT latitude as lat, longitude as lon FROM live_flights WHERE timestamp >= NOW() - INTERVAL '10 minutes' AND latitude IS NOT NULL", conn)
+        df_map = pd.read_sql("""
+            SELECT latitude as lat, longitude as lon
+            FROM live_flights
+            WHERE timestamp >= (SELECT MAX(timestamp) FROM live_flights) - INTERVAL '5 minutes'
+            AND latitude IS NOT NULL
+            """, conn)
+        
+        df_flight_list = pd.read_sql("""
+            SELECT DISTINCT ON (callsign)
+                callsign AS "Callsign",
+                country AS "Country",
+                ROUND(altitude_meters::numeric, 0) AS "Altitude (m)",
+                ROUND(latitude::numeric, 3) AS "Lat",
+                ROUND(longitude::numeric, 3) AS "Lon",
+                timestamp AS Time
+            FROM live_flights
+            WHERE timestamp >= (SELECT MAX(timestamp) FROM live_flights) - INTERVAL '5 minutes'
+            ORDER BY callsign, timestamp DESC
+            """, conn)
         
         # Stäng anslutningen
         conn.close()
-        return df_trend, df_latest_aq, df_latest_flights, df_map
+        return df_trend, df_latest_aq, df_latest_flights, df_map, df_flight_list
         
         
     except Exception as e:
         st.error(f"Error loading data: {e}")
-        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 
 # Ladda in all data
-df_trend, df_latest_aq, df_latest_flights, df_map = load_data()
+df_trend, df_latest_aq, df_latest_flights, df_map, df_flight_list = load_data()
 
 # Layout för dashboarden
 if not df_trend.empty:
@@ -79,34 +103,46 @@ if not df_trend.empty:
     current_pm10 = df_latest_aq.iloc[0]['value'] if not df_latest_aq.empty else 0
     current_flights = df_latest_flights.iloc[0]['count'] if not df_latest_flights.empty else 0
     
-    col1, col2, col3 = st.columns(3)
+    kpi_col1, kpi_col2 = st.columns([1, 1])
     
-    with col1:
-        st.metric(label="✈️ Flyg över Stockholm/Arlanda", value=f"{current_flights}", delta="Aktiva just nu")
-        
-    with col2:
-        #Färga texten baserat på PM10-nivån
-        if current_pm10 > 50:
-            delta_text = "Höga partikelnivåer!"
-            delta_color = "red"
-        
-        elif current_pm10 > 35:
-            delta_text = "Måttlig luftkvalitet"
-            delta_color = "orange"
+    with kpi_col1:
+        with st.container(border=True):
+            st.metric(label="Flyg över Stockholm/Arlanda", value=f"{current_flights}", delta="Aktiva just nu")
             
+    with kpi_col2:
+        if current_pm10 >= 50:
+            delta_text = "Höga partikelnivåer!"
+            delta_color = "inverse"
+        elif current_pm10 >= 35:
+            delta_text = "Måttlig luftkvalitet"
+            delta_color = "inverse"
         else:
             delta_text = "Bra luftkvalitet"
-            delta_color = "green"
-            
-        st.metric(label="PM10 (luftpartiklar)", value=f"{current_pm10} µg/m³", delta=delta_text, delta_color=delta_color)
+            delta_color = "inverse"
         
-    with col3:
-        st.write("## Flyg över Sthlm/Arlanda (live)##")
+        with st.container(border=True):
+            st.metric(label="PM10 (luftpartiklar)", value=f"{current_pm10} µg/m³", delta=delta_text, delta_color=delta_color)
+    
+    st.write("")
+    
+    list_col, map_col = st.columns([2, 1])
+    
+    with list_col:
+        st.write("**Aktuella flyg (live)**")
+        st.dataframe(
+            df_flight_list,
+            height=350,
+            hide_index=True,
+            use_container_width=True
+        )
+        
+    with map_col:
+        st.write("### Flyg över Sthlm/Arlanda (live)")
         if not df_map.empty:
             st.map(df_map, zoom=7)
         else:
             st.info("Inga plan hittades")
-            
+        
     st.markdown("---")
     
     # Rad 2: Graf trenden över tid
@@ -114,7 +150,7 @@ if not df_trend.empty:
     col4, col5 = st.columns([2, 1]) # 2/3 av bredden tas up av columnen
     
     with col4:
-        st.write("### Utveckling - Senaste 24 timmarna")
+        st.write("### Utveckling - Senaste dagarna")
         
         # Matplotlib
         sb.set_theme(style="darkgrid")
@@ -151,7 +187,7 @@ if not df_trend.empty:
         st.write("### Senaste datapunkter")
         # Städning för tabellen
         display_df = df_trend.copy()
-        display_df["timestamp"] = pd.to_datetime(display_df["timestamp"]).dt.strftime('%H:%M')
+        display_df["timestamp"] = pd.to_datetime(display_df["timestamp"]).dt.strftime('%d %b %H:%M')
         display_df.rename(columns={"timestamp": "Tid", "flights": "Flyg", "pm10": "PM10"}, inplace=True)
         st.dataframe(display_df.head(10), use_container_width=True, hide_index=True)
         
