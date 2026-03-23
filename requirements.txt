@@ -8,9 +8,6 @@ colorama==0.4.6
 dnspython==2.7.0
 email-validator==2.3.0
 exceptiongroup==1.3.1
-fastapi==0.128.8
-fastapi-cli==0.0.22
-fastapi-cloud-cli==0.12.0
 fastar==0.8.0
 h11==0.16.0
 httpcore==1.0.9
@@ -52,6 +49,5 @@ typing-extensions==4.15.0
 typing-inspection==0.4.2
 tzdata==2025.3
 urllib3==2.6.3
-uvicorn==0.39.0
 watchfiles==1.1.1
 websockets==15.0.1
