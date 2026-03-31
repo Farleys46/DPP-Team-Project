@@ -20,8 +20,14 @@ st.markdown("""
             """, unsafe_allow_html=True)
 
 # HEADER
-st.title("SkySense")
-st.markdown("Flygtrafik och luftkvalitet över Stockholm/Arlanda")
+header_logo_col, header_text_col = st.columns([1, 1.5])
+
+with header_logo_col:
+    st.image("skysense_logo.png", width=500)
+    
+with header_text_col:
+    st.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
+    st.markdown("## Flygtrafik och luftkvalitet över Stockholm/Arlanda")
 
 if st.button("Ladda in senaste datan"):
     st.rerun()
