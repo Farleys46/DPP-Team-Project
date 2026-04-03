@@ -118,13 +118,13 @@ if not df_trend.empty:
     with kpi_col2:
         if current_pm10 >= 50:
             delta_text = "Höga partikelnivåer!"
-            delta_color = "inverse"
+            delta_color = "red"
         elif current_pm10 >= 35:
             delta_text = "Måttlig luftkvalitet"
-            delta_color = "inverse"
+            delta_color = "orange"
         else:
             delta_text = "Bra luftkvalitet"
-            delta_color = "inverse"
+            delta_color = "green"
         
         with st.container(border=True):
             st.metric(label="PM10 (luftpartiklar)", value=f"{current_pm10} µg/m³", delta=delta_text, delta_color=delta_color)
